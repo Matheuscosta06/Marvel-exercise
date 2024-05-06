@@ -7,7 +7,6 @@ CREATE TABLE Herois (
     hp INT NOT NULL
 );
 
-
 CREATE TABLE Batalhas (
     id SERIAL PRIMARY KEY,
     hero1_id INT NOT NULL,
