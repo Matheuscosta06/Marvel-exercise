@@ -15,36 +15,44 @@ const pool = new Pool({
 
 app.use(express.json());
 
-const batalha = (heroi1, heroi2) => {
-  const dano1 = heroi1.dano * heroi1.level;
-  const dano2 = heroi2.dano * heroi2.level;
-  const hp1 = heroi1.hp * heroi1.level;
-  const hp2 = heroi2.hp * heroi2.level;
-
-  while (hp1 > 0 && hp2 > 0) {
-    hp2 -= dano1;
-    if (hp2 <= 0) {
-      return heroi1.name;
-    }
-    hp1 -= dano2;
-    if (hp1 <= 0) {
-      return heroi2.name;
-    }
-  }
-}
-
-app.get('/batalha/:id1/:id2', async (req, res) => {
-  const { id1, id2 } = req.params;
+app.get("/batalha/:heroi1id/:heroi2id", async (req, res) => {
+  const { heroi1id, heroi2id } = req.params;
   try {
-    const heroi1 = await pool.query('SELECT * FROM herois WHERE id = $1', [id1]);
-    const heroi2 = await pool.query('SELECT * FROM herois WHERE id = $1', [id2]);
-    const resultado = batalha(heroi1.rows[0], heroi2.rows[0]);
-    res.send(`O vencedor foi: ${resultado}`);
+    const { rows } = await pool.query('SELECT * FROM herois WHERE id = $1 OR id = $2', [heroi1id, heroi2id]);
+    res.send(rows);
   } catch (error) {
     res.status(500).send('Erro ao buscar herois');
   }
+
 }
-);  
+);
+
+async function winner(heroi1id, heroi2id) {
+  const { rows } = await pool.query('SELECT * FROM herois WHERE id = $1 OR id = $2', [heroi1id, heroi2id]);
+  const heroi1 = rows[0];
+  const heroi2 = rows[1];
+
+  if (heroi1.dano > heroi2.dano) {
+    return heroi1;
+  } else if (heroi2.dano > heroi1.dano) {
+    return heroi2;
+  } else {
+    return "empate";
+  }
+}
+
+
+app.get("/winner/:heroi1id/:heroi2id", async (req, res) => {
+  const { heroi1id, heroi2id } = req.params;
+  const heroi = await winner(heroi1id, heroi2id);
+
+  res.json({
+    message: `o vencedor é ${heroi.name} `,
+
+  });
+}
+);
+
 
 
 app.get('/herois', async (req, res) => {
