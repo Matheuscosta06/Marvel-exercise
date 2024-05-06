@@ -2,7 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 
 const app = express();
-const PORT = 3000;
+const PORT = 9876;
 
 const pool = new Pool({
   user: 'postgres',
@@ -17,10 +17,6 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Bem-vindo ao meu app!');
 });
-
-
-
-
 
 
 
