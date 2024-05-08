@@ -27,16 +27,15 @@ app.get("/batalha/:heroi1id/:heroi2id", async (req, res) => {
 }
 );
 
-async function winner(heroi1id, heroi2id) {
-  const { rows } = await pool.query('SELECT * FROM herois WHERE id = $1 OR id = $2', [heroi1id, heroi2id]);
-  const heroi1 = rows[0];
-  const heroi2 = rows[1];
 
+
+const batalhaFunc = (heroi1, heroi2) => {
   if (heroi1.dano > heroi2.dano) {
-    return heroi1;
+    return heroi1.name;
   } else if (heroi2.dano > heroi1.dano) {
-    return heroi2;
-  } else {
+    return heroi2.name;
+  }
+  else {
     return "empate";
   }
 }
@@ -44,12 +43,25 @@ async function winner(heroi1id, heroi2id) {
 
 app.get("/winner/:heroi1id/:heroi2id", async (req, res) => {
   const { heroi1id, heroi2id } = req.params;
-  const heroi = await winner(heroi1id, heroi2id);
-
+  const hero1 = await pool.query('SELECT * FROM herois WHERE id = $1', [heroi1id]);
+  const hero2 = await pool.query('SELECT * FROM herois WHERE id = $1', [heroi2id]);
+  const battle = await batalhaFunc(hero1.rows[0], hero2.rows[0]);
   res.json({
-    message: `o vencedor é ${heroi.name} `,
+    message: `o vencedor é:${battle}`,
 
   });
+}
+);
+
+
+app.get("/historico", async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM historico');
+    res.send(rows);
+  } catch (error) {
+    res.status(500).send('Erro ao buscar historico');
+  }
+
 }
 );
 
