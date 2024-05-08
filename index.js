@@ -27,26 +27,29 @@ app.get("/batalha/:heroi1id/:heroi2id", async (req, res) => {
 }
 );
 
-const batalhaFunc = (heroi1, heroi2) => {
-  if (heroi1.dano > heroi2.dano) {
-    return heroi1.id;
-  } else if (heroi2.dano > heroi1.dano) {
-    return heroi2.id;
-  }
-  else {
-    return "empate";
+async function batalhafunc(heroi01, heroi02) {
+  const danoHero1 = heroi01.dano;
+  const danoHero2 = heroi02.dano;
+
+  if (danoHero1 > danoHero2) {
+    return heroi01;
+  } else if (danoHero2 > danoHero1) {
+    return heroi02;
+  } else {
+    return null;
   }
 }
-
-
 app.get("/winner/:id1/:id2", async (req, res) => {
   const { id1, id2 } = req.params;
   const hero1 = await pool.query('SELECT * FROM herois WHERE id = $1', [id1]);
   const hero2 = await pool.query('SELECT * FROM herois WHERE id = $1', [id2]);
-  const battle = await batalhaFunc(hero1.rows[0], hero2.rows[0]);
-  await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, battle])
+  const battle = await batalhafunc(hero1.rows[0], hero2.rows[0]);
+  if (battle == null) {
+    await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, "empate"])
+  }
+  await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, battle.id])
   res.json({
-    message: `o vencedor é:${battle}`,
+    message: `o vencedor é:${battle.name}`,
 
   });
 }
@@ -79,7 +82,7 @@ app.get('/herois', async (req, res) => {
 //   try {
 //     const resultado = await pool.query('SELECT batalhas.id')
 //   }
-  
+
 // })
 
 app.get('/herois/:id', async (req, res) => {
