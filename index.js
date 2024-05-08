@@ -27,13 +27,11 @@ app.get("/batalha/:heroi1id/:heroi2id", async (req, res) => {
 }
 );
 
-
-
 const batalhaFunc = (heroi1, heroi2) => {
   if (heroi1.dano > heroi2.dano) {
-    return heroi1.name;
+    return heroi1.id;
   } else if (heroi2.dano > heroi1.dano) {
-    return heroi2.name;
+    return heroi2.id;
   }
   else {
     return "empate";
@@ -41,11 +39,12 @@ const batalhaFunc = (heroi1, heroi2) => {
 }
 
 
-app.get("/winner/:heroi1id/:heroi2id", async (req, res) => {
-  const { heroi1id, heroi2id } = req.params;
-  const hero1 = await pool.query('SELECT * FROM herois WHERE id = $1', [heroi1id]);
-  const hero2 = await pool.query('SELECT * FROM herois WHERE id = $1', [heroi2id]);
+app.get("/winner/:id1/:id2", async (req, res) => {
+  const { id1, id2 } = req.params;
+  const hero1 = await pool.query('SELECT * FROM herois WHERE id = $1', [id1]);
+  const hero2 = await pool.query('SELECT * FROM herois WHERE id = $1', [id2]);
   const battle = await batalhaFunc(hero1.rows[0], hero2.rows[0]);
+  await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, battle])
   res.json({
     message: `o vencedor é:${battle}`,
 
@@ -53,19 +52,17 @@ app.get("/winner/:heroi1id/:heroi2id", async (req, res) => {
 }
 );
 
-
 app.get("/historico", async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM historico');
-    res.send(rows);
+    const resultado = await pool.query('SELECT * FROM batalhas');
+    res.json({
+      total: resultado.rowCount,
+      batalhas: resultado.rows,
+    });
   } catch (error) {
-    res.status(500).send('Erro ao buscar historico');
+    res.status(500).send('Erro ao buscar histórico');
   }
-
-}
-);
-
-
+});
 
 app.get('/herois', async (req, res) => {
   try {
@@ -77,6 +74,13 @@ app.get('/herois', async (req, res) => {
 
 }
 );
+
+// app.get('/batalhaheroi', async (req, res) => {
+//   try {
+//     const resultado = await pool.query('SELECT batalhas.id')
+//   }
+  
+// })
 
 app.get('/herois/:id', async (req, res) => {
   const { id } = req.params;
