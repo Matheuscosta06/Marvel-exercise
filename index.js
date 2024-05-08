@@ -57,7 +57,7 @@ app.get("/winner/:id1/:id2", async (req, res) => {
 
 app.get("/historico", async (req, res) => {
   try {
-    const resultado = await pool.query('SELECT * FROM batalhas');
+    const resultado = await pool.query('SELECT h1.name AS nome_heroi1,h2.name AS nome_heroi2,hw.name AS nome_heroi_vencedor FROM batalhas b INNER JOIN herois h1 ON b.hero1_id = h1.id INNER JOIN herois h2 ON b.hero2_id = h2.id INNER JOIN herois hw ON b.winner_id = hw.id');
     res.json({
       total: resultado.rowCount,
       batalhas: resultado.rows,
@@ -66,6 +66,8 @@ app.get("/historico", async (req, res) => {
     res.status(500).send('Erro ao buscar histórico');
   }
 });
+
+
 
 app.get('/herois', async (req, res) => {
   try {
@@ -78,12 +80,17 @@ app.get('/herois', async (req, res) => {
 }
 );
 
-// app.get('/batalhaheroi', async (req, res) => {
-//   try {
-//     const resultado = await pool.query('SELECT batalhas.id')
-//   }
+app.get('/historico/nome/:nome', async (req, res) => {
+  try {
+    const { nome } = req.params;
+    const { rows } = await pool.query('SELECT h1.name AS nome_heroi1,h2.name AS nome_heroi2,hw.name AS nome_heroi_vencedor FROM batalhas b INNER JOIN herois h1 ON b.hero1_id = h1.id INNER JOIN herois h2 ON b.hero2_id = h2.id INNER JOIN herois hw ON b.winner_id = hw.id WHERE b.hero1_name = $1 OR b.hero2_name = $1', [nome]);
+    res.send(rows)
+  } catch (error) {
+    res.status(500).send('Erro ao buscar heroi');
+  }
+}
+);
 
-// })
 
 app.get('/herois/:id', async (req, res) => {
   const { id } = req.params;
