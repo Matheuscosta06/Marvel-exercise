@@ -27,6 +27,8 @@ app.get("/batalha/:heroi1id/:heroi2id", async (req, res) => {
 }
 );
 
+
+
 async function batalhafunc(heroi01, heroi02) {
   const danoHero1 = heroi01.dano;
   const danoHero2 = heroi02.dano;
@@ -83,9 +85,16 @@ app.get('/herois', async (req, res) => {
 app.get('/historico/nome/:nome', async (req, res) => {
   try {
     const { nome } = req.params;
-    const { rows } = await pool.query('SELECT h1.name AS nome_heroi1,h2.name AS nome_heroi2,hw.name AS nome_heroi_vencedor FROM batalhas b INNER JOIN herois h1 ON b.hero1_id = h1.id INNER JOIN herois h2 ON b.hero2_id = h2.id INNER JOIN herois hw ON b.winner_id = hw.id WHERE b.hero1_name = $1 OR b.hero2_name = $1', [nome]);
+    const { rows } = await pool.query(`
+    SELECT h1.name AS nome_heroi1, h2.name AS nome_heroi2, hw.name AS nome_heroi_vencedor 
+    FROM batalhas b 
+    INNER JOIN herois h1 ON b.hero1_id = h1.id 
+    INNER JOIN herois h2 ON b.hero2_id = h2.id 
+    INNER JOIN herois hw ON b.winner_id = hw.id 
+    WHERE h1.name = $1 OR h2.name = $1;`, [nome]);
     res.send(rows)
   } catch (error) {
+    console.log(error);
     res.status(500).send('Erro ao buscar heroi');
   }
 }
@@ -135,22 +144,6 @@ app.delete('/herois/:id', async (req, res) => {
   }
 }
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 app.get('/', (req, res) => {
   res.send('Bem-vindo ao meu app!');
