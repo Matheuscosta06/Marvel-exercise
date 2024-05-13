@@ -47,15 +47,17 @@ app.get("/winner/:id1/:id2", async (req, res) => {
   const hero2 = await pool.query('SELECT * FROM herois WHERE id = $1', [id2]);
   const battle = await batalhafunc(hero1.rows[0], hero2.rows[0]);
   if (battle == null) {
-    await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, "empate"])
+    await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, NULL)', [hero1.rows[0].id, hero2.rows[0].id])
+    res.json({
+      message: 'Empate',
+    });
+  } else {
+    await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, battle.id])
+    res.json({
+      message: `o vencedor é:${battle.name}`,
+    });
   }
-  await pool.query('INSERT INTO batalhas (hero1_id, hero2_id, winner_id) VALUES ($1, $2, $3)', [hero1.rows[0].id, hero2.rows[0].id, battle.id])
-  res.json({
-    message: `o vencedor é:${battle.name}`,
-
-  });
-}
-);
+});
 
 app.get("/historico", async (req, res) => {
   try {
